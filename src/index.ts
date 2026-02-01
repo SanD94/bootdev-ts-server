@@ -8,6 +8,7 @@ import { handlerChirpValidation } from "./api/chirp_validation.js";
 const PORT = 8080;
 const app = express();
 
+app.use(express.json());
 app.use(middlewareLogResponses);
 app.use("/app", middlewareMetricsInc, express.static("./src/app/"));
 
