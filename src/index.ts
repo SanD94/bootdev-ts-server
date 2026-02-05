@@ -9,6 +9,7 @@ import { handlerMetrics, handlerResetMetrics } from "./api/metrics.js";
 import { handlerChirpValidation } from "./api/chirp_validation.js";
 
 import { config } from "./config.js";
+import { handlerCreateUser } from "./api/user.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
 await migrate(drizzle(migrationClient), config.db.migrationConfig);
@@ -19,10 +20,16 @@ app.use(express.json());
 app.use(middlewareLogResponses);
 app.use("/app", middlewareMetricsInc, express.static("./src/app/"));
 
+// api endpoints
 app.get("/api/healthz", handlerReadiness);
 app.post("/api/validate_chirp", (req, res, next) => {
   Promise.resolve(handlerChirpValidation(req, res)).catch(next);
 });
+app.post("/api/users", (req, res, next) => {
+  Promise.resolve(handlerCreateUser(req, res)).catch(next);
+});
+
+// admin endpoints
 app.get("/admin/metrics", handlerMetrics);
 app.post("/admin/reset", handlerResetMetrics);
 
