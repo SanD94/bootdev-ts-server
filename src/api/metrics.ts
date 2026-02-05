@@ -7,7 +7,7 @@ export async function handlerMetrics(_: Request, res: Response): Promise<void> {
 <html>
   <body>
     <h1>Welcome, Chirpy Admin</h1>
-    <p>Chirpy has been visited ${config.fileserverHits} times!</p>
+    <p>Chirpy has been visited ${config.api.fileserverHits} times!</p>
   </body>
 </html>
 `;
@@ -16,7 +16,7 @@ export async function handlerMetrics(_: Request, res: Response): Promise<void> {
 }
 
 export async function handlerResetMetrics(_: Request, res: Response): Promise<void> {
-  config.fileserverHits = 0;
+  config.api.fileserverHits = 0;
   res.write("Server Count is Reset");
   res.end();
 }
