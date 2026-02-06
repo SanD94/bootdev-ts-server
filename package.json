@@ -9,8 +9,7 @@
     "typescript": "^5.9.3"
   },
   "scripts": {
-    "build": "yarn build-yarn",
-    "build-yarn": "tsc",
+    "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc && node dist/index.js",
     "generate": "drizzle-kit generate",

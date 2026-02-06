@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import { config } from "../config.js";
+import { config, Platform } from "../config.js";
+import { reset } from "../db/queries/users.js";
+import { UserForbiddenError } from "./errors.js";
 
 export async function handlerMetrics(_: Request, res: Response): Promise<void> {
   res.set("Content-Type", "text/html; charset=utf-8");
@@ -16,8 +18,15 @@ export async function handlerMetrics(_: Request, res: Response): Promise<void> {
 }
 
 export async function handlerResetMetrics(_: Request, res: Response): Promise<void> {
+  if (config.api.platform !== Platform.Dev) {
+    console.log(config.api.platform);
+    throw new UserForbiddenError("Reset is only allowed in dev environment");
+  }
+
   config.api.fileserverHits = 0;
-  res.write("Server Count is Reset");
+  await reset();
+
+  res.write("Hits reset to 0");
   res.end();
 }
 
