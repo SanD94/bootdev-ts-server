@@ -5,11 +5,12 @@ import { NewUser } from "../db/schema.js";
 import { hashPassword } from "../auth.js";
 
 
-type CreateUser = Pick<NewUser, "email"> & {
+export type User = Pick<NewUser, "email"> & {
   password: string;
 };
 
-function isNewUser(obj: any): obj is CreateUser {
+
+export function isUser(obj: any): obj is User {
   return typeof obj?.email === "string"
     && typeof obj?.password === "string";
 }
@@ -17,14 +18,15 @@ function isNewUser(obj: any): obj is CreateUser {
 export async function handlerCreateUser(req: Request, res: Response) {
   const user = req.body;
 
-  if (!isNewUser(user)) {
+  if (!isUser(user)) {
     throw new BadRequestError("Something went wrong");
   }
 
   const { hashedPassword, ...newUser } = await createUser({
     email: user.email,
-    hashedPassword: await hashPassword(user.email),
+    hashedPassword: await hashPassword(user.password),
   });
 
   res.status(201).send(newUser);
 }
+
