@@ -1,24 +1,33 @@
 import { Response, Request } from "express";
 import { BadRequestError, ChirpTooLongError } from "./errors.js";
+import { createChirp } from "../db/queries/chirps.js";
+import { NewChirp } from "../db/schema.js";
 
-type Chirp = {
-  body: string;
-};
 
-function isChirp(obj: any): obj is Chirp {
-  return typeof obj?.body === "string";
+
+function isChirp(obj: any): obj is NewChirp {
+  return typeof obj?.body === "string"
+    && typeof obj?.userId === "string";
 }
 
-export async function handlerChirpValidation(req: Request, res: Response) {
-  const chirp = req.body;
 
+export async function handlerCreateChirp(req: Request, res: Response) {
+  const chirp = getValidChirp(req.body);
+
+  const newChirp = await createChirp(chirp);
+
+
+  res.status(201).send(newChirp);
+}
+
+function getValidChirp(chirp: any): NewChirp {
   const maxChirpLength = 140;
   const slangs = ["kerfuffle", "sharbert", "fornax"];
-
 
   if (!isChirp(chirp)) {
     throw new BadRequestError("Something went wrong");
   }
+
   if (chirp.body.length > maxChirpLength) {
     throw new ChirpTooLongError(`Chirp is too long. Max length is ${maxChirpLength}`);
   }
@@ -31,8 +40,9 @@ export async function handlerChirpValidation(req: Request, res: Response) {
     }
   }
 
-  res.status(200).send({
-    cleanedBody: chirpWords.join(" "),
-  });
-
+  return {
+    "body": chirpWords.join(" "),
+    "userId": chirp.userId,
+  };
 }
+
