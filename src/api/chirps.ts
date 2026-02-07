@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
-import { BadRequestError, ChirpTooLongError } from "./errors.js";
-import { createChirp } from "../db/queries/chirps.js";
+import { BadRequestError, ChirpTooLongError, NotFoundError } from "./errors.js";
+import { createChirp, getChirps, getChirp } from "../db/queries/chirps.js";
 import { NewChirp } from "../db/schema.js";
 
 
@@ -8,16 +8,6 @@ import { NewChirp } from "../db/schema.js";
 function isChirp(obj: any): obj is NewChirp {
   return typeof obj?.body === "string"
     && typeof obj?.userId === "string";
-}
-
-
-export async function handlerCreateChirp(req: Request, res: Response) {
-  const chirp = getValidChirp(req.body);
-
-  const newChirp = await createChirp(chirp);
-
-
-  res.status(201).send(newChirp);
 }
 
 function getValidChirp(chirp: any): NewChirp {
@@ -46,3 +36,29 @@ function getValidChirp(chirp: any): NewChirp {
   };
 }
 
+
+
+export async function handlerCreateChirp(req: Request, res: Response) {
+  const chirp = getValidChirp(req.body);
+
+  const newChirp = await createChirp(chirp);
+
+  res.status(201).send(newChirp);
+}
+
+export async function handlerGetChirps(_: Request, res: Response) {
+  const chirps = await getChirps();
+
+  res.send(chirps);
+}
+
+export async function handlerGetChirp(req: Request, res: Response) {
+  const { chirpId } = req.params;
+  const chirp = await getChirp(chirpId as string);
+
+  if (!chirp) {
+    throw new NotFoundError(`chirp with id: ${chirpId} not found`);
+  }
+
+  res.send(chirp);
+}

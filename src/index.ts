@@ -6,7 +6,7 @@ import express from "express";
 import { handlerReadiness } from "./api/readiness.js";
 import { middlewareError, middlewareLogResponses, middlewareMetricsInc } from "./api/middleware.js";
 import { handlerMetrics, handlerResetMetrics } from "./api/metrics.js";
-import { handlerCreateChirp } from "./api/chirps.js";
+import { handlerCreateChirp, handlerGetChirps } from "./api/chirps.js";
 
 import { config } from "./config.js";
 import { handlerCreateUser } from "./api/users.js";
@@ -26,6 +26,9 @@ app.get("/api/healthz", (req, res, next) => {
 });
 app.post("/api/chirps", (req, res, next) => {
   Promise.resolve(handlerCreateChirp(req, res)).catch(next);
+});
+app.get("/api/chirps", (req, res, next) => {
+  Promise.resolve(handlerGetChirps(req, res)).catch(next);
 });
 app.post("/api/users", (req, res, next) => {
   Promise.resolve(handlerCreateUser(req, res)).catch(next);
