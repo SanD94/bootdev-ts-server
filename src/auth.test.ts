@@ -1,5 +1,6 @@
+import { Request } from "express";
 import { vi, describe, it, expect, beforeAll } from "vitest";
-import { checkPasswordHash, hashPassword, makeJWT, validateJWT } from "./auth.js";
+import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, validateJWT } from "./auth.js";
 import { UserNotAuthenticatedError } from "./api/errors.js";
 
 describe("Password Hashing", () => {
@@ -69,7 +70,63 @@ describe("JWT Utilities", () => {
     });
   });
 
+  describe("validate token", () => {
+    it("should return the token when a valid authorization header is provided", () => {
+      const mockRequest = {
+        get: vi.fn().mockReturnValue("Bearer secret-token"),
+      } as unknown as Request;
 
+      const result = getBearerToken(mockRequest);
 
+      expect(result).toBe("secret-token");
+      expect(mockRequest.get).toHaveBeenCalledWith("Authorization");
+    });
+
+    it("should throw UserNotAuthenticatedError if authorization header is missing", () => {
+      const mockRequest = {
+        get: vi.fn().mockReturnValue(undefined),
+      } as unknown as Request;
+
+      expect(() => getBearerToken(mockRequest)).toThrow(UserNotAuthenticatedError);
+      expect(() => getBearerToken(mockRequest)).toThrow("Token not available");
+    });
+
+    it("should throw UserNotAuthenticatedError if the prefix is not the expected BEAR_TOKEN", () => {
+      const mockRequest = {
+        get: vi.fn().mockReturnValue("Basic secret-token"),
+      } as unknown as Request;
+
+      expect(() => getBearerToken(mockRequest)).toThrow(UserNotAuthenticatedError);
+      expect(() => getBearerToken(mockRequest)).toThrow("Authorization header is broken");
+    });
+
+    it("should throw UserNotAuthenticatedError if the token part is missing after the prefix", () => {
+      const mockRequest = {
+        get: vi.fn().mockReturnValue("Bearer "),
+      } as unknown as Request;
+
+      expect(() => getBearerToken(mockRequest)).toThrow(UserNotAuthenticatedError);
+      expect(() => getBearerToken(mockRequest)).toThrow("Authorization header is broken");
+    });
+
+    it("should throw UserNotAuthenticatedError if the header contains more than two parts", () => {
+      const mockRequest = {
+        get: vi.fn().mockReturnValue("Bearer secret-token "),
+      } as unknown as Request;
+
+      expect(() => getBearerToken(mockRequest)).toThrow(UserNotAuthenticatedError);
+      expect(() => getBearerToken(mockRequest)).toThrow("Authorization header is broken");
+    });
+
+    it("should throw UserNotAuthenticatedError if the header is not a string", () => {
+      const mockRequest = {
+        get: vi.fn().mockReturnValue(12345),
+      } as unknown as Request;
+
+      expect(() => getBearerToken(mockRequest)).toThrow(UserNotAuthenticatedError);
+      expect(() => getBearerToken(mockRequest)).toThrow("Token not available");
+    });
+
+  });
 });
 

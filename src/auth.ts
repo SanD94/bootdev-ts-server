@@ -1,9 +1,11 @@
+import { Request } from "express";
 import * as argon2 from "argon2";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import { UserNotAuthenticatedError } from "./api/errors.js";
 import { tryAction } from "./utils.js";
 
 const TOKEN_ISSUER = "chirpy";
+const BEAR_TOKEN = "Bearer";
 
 export async function hashPassword(password: string) {
   const hashedPassword = await argon2.hash(password);
@@ -40,4 +42,19 @@ export function validateJWT(tokenString: string, secret: string): string {
   }
 
   return decoded.sub;
+}
+
+export function getBearerToken(req: Request): string {
+  const authHeader = req.get("Authorization");
+  if (!authHeader || typeof authHeader !== "string") {
+    throw new UserNotAuthenticatedError("Token not available");
+  }
+
+  const [bearer, token, ...extra] = authHeader.split(" ");
+
+  if (bearer !== BEAR_TOKEN || !token || extra.length > 0) {
+    throw new UserNotAuthenticatedError("Authorization header is broken");
+  }
+
+  return token;
 }
