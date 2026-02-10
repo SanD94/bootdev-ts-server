@@ -7,6 +7,7 @@ import { hashPassword } from "../auth.js";
 
 export type User = Pick<NewUser, "email"> & {
   password: string;
+  expiresInSecond?: number;
 };
 
 

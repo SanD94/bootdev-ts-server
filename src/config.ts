@@ -15,7 +15,8 @@ type DBConfig = {
 type APIConfig = {
   fileserverHits: number;
   port: number;
-  platform: string;
+  platform: Platform;
+  secret: string;
 };
 
 const migrationConfig: MigrationConfig = {
@@ -26,7 +27,8 @@ export const config: Config = {
   api: {
     fileserverHits: 0,
     port: Number(requireKey("PORT")),
-    platform: requireKey("PLATFORM"),
+    platform: requireKey("PLATFORM") as Platform,
+    secret: requireKey("JWT_SECRET"),
   },
   db: {
     migrationConfig: migrationConfig,
