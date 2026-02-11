@@ -1,16 +1,18 @@
 import { Response, Request } from "express";
-import { BadRequestError, ChirpTooLongError, NotFoundError } from "./errors.js";
+import { BadRequestError, ChirpTooLongError, NotFoundError, UserNotAuthenticatedError } from "./errors.js";
 import { createChirp, getChirps, getChirp } from "../db/queries/chirps.js";
 import { NewChirp } from "../db/schema.js";
+import { getBearerToken, validateJWT } from "../auth.js";
+import { config } from "../config.js";
 
 
+type Chirp = Pick<NewChirp, "body">;
 
-function isChirp(obj: any): obj is NewChirp {
-  return typeof obj?.body === "string"
-    && typeof obj?.userId === "string";
+function isChirp(obj: any): obj is Chirp {
+  return typeof obj?.body === "string";
 }
 
-function getValidChirp(chirp: any): NewChirp {
+function getValidChirp(chirp: any): Chirp {
   const maxChirpLength = 140;
   const slangs = ["kerfuffle", "sharbert", "fornax"];
 
@@ -32,7 +34,6 @@ function getValidChirp(chirp: any): NewChirp {
 
   return {
     "body": chirpWords.join(" "),
-    "userId": chirp.userId,
   };
 }
 
@@ -40,8 +41,14 @@ function getValidChirp(chirp: any): NewChirp {
 
 export async function handlerCreateChirp(req: Request, res: Response) {
   const chirp = getValidChirp(req.body);
+  const token = getBearerToken(req);
+  const jwtUserId = validateJWT(token, config.api.secret);
 
-  const newChirp = await createChirp(chirp);
+
+  const newChirp = await createChirp({
+    ...chirp,
+    userId: jwtUserId,
+  });
 
   res.status(201).send(newChirp);
 }
