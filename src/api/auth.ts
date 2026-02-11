@@ -7,15 +7,16 @@ import { config } from "../config.js";
 
 export async function handlerLogin(req: Request, res: Response) {
   const user = req.body;
-  const HOUR = 3600;
 
 
   if (!isUser(user)) {
     throw new BadRequestError("Something went wrong");
   }
 
-  if (!user?.expiresInSecond || user.expiresInSecond > HOUR) {
-    user.expiresInSecond = HOUR;
+  let duration = user?.expiresInSecond;
+
+  if (!duration || duration > config.jwt.defaultDuration) {
+    duration = config.jwt.defaultDuration;
   }
 
   const currentUser = await getUser(user.email);
@@ -32,7 +33,7 @@ export async function handlerLogin(req: Request, res: Response) {
     throw new UserNotAuthenticatedError("401 Unauthorized");
   }
 
-  const token = makeJWT(signedUser.id, user.expiresInSecond, config.api.secret);
+  const token = makeJWT(signedUser.id, duration, config.jwt.secret);
 
   res.status(200).send({
     ...signedUser,

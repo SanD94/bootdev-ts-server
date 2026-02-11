@@ -42,7 +42,7 @@ function getValidChirp(chirp: any): Chirp {
 export async function handlerCreateChirp(req: Request, res: Response) {
   const chirp = getValidChirp(req.body);
   const token = getBearerToken(req);
-  const jwtUserId = validateJWT(token, config.api.secret);
+  const jwtUserId = validateJWT(token, config.jwt.secret);
 
 
   const newChirp = await createChirp({

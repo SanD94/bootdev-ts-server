@@ -3,8 +3,8 @@ import * as argon2 from "argon2";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import { UserNotAuthenticatedError } from "./api/errors.js";
 import { tryAction } from "./utils.js";
+import { config } from "./config.js";
 
-const TOKEN_ISSUER = "chirpy";
 const BEAR_TOKEN = "Bearer";
 
 export async function hashPassword(password: string) {
@@ -25,7 +25,7 @@ export function makeJWT(userID: string, expiresIn: number, secret: string): stri
   const iat = Math.floor(Date.now() / 1000);
 
   const payload: payload = {
-    iss: TOKEN_ISSUER,
+    iss: config.jwt.issuer,
     sub: userID,
     iat: iat,
     exp: iat + expiresIn,
