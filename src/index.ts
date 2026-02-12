@@ -10,6 +10,7 @@ import { handlerCreateChirp, handlerGetChirps, handlerGetChirp } from "./api/chi
 
 import { config } from "./config.js";
 import { handlerCreateUser } from "./api/users.js";
+import { handlerRefreshToken } from "./api/refresh_tokens.js";
 import { handlerLogin } from "./api/auth.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
@@ -39,6 +40,9 @@ app.post("/api/users", (req, res, next) => {
 });
 app.post("/api/login", (req, res, next) => {
   Promise.resolve(handlerLogin(req, res)).catch(next);
+});
+app.post("/api/refresh", (req, res, next) => {
+  Promise.resolve(handlerRefreshToken(req, res)).catch(next);
 });
 
 // admin endpoints
