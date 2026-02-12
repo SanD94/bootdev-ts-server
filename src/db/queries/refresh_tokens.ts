@@ -19,6 +19,13 @@ export async function getUserFromRefreshToken(token: string) {
   return result;
 }
 
+export async function revokeRefreshToken(token: string, date: Date) {
+  await db
+    .update(refreshTokens)
+    .set({ revokedAt: date })
+    .where(eq(refreshTokens.token, token));
+}
+
 export async function reset() {
   await db.delete(refreshTokens);
 }
