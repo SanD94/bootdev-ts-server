@@ -4,6 +4,7 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 import { UserNotAuthenticatedError } from "./api/errors.js";
 import { tryAction } from "./utils.js";
 import { config } from "./config.js";
+import crypto from "node:crypto";
 
 const BEAR_TOKEN = "Bearer";
 
@@ -57,4 +58,8 @@ export function getBearerToken(req: Request): string {
   }
 
   return token;
+}
+
+export function makeRefreshToken() {
+  return crypto.randomBytes(32).toString("hex");
 }
