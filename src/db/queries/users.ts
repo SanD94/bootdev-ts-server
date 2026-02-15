@@ -19,6 +19,15 @@ export async function getUser(email: string) {
   return result;
 }
 
+export async function updateUser(id: string, user: NewUser) {
+  const [result] = await db
+    .update(users)
+    .set(user)
+    .where(eq(users.id, id))
+    .returning();
+  return result;
+}
+
 export async function reset() {
   await db.delete(users);
 }
