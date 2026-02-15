@@ -6,7 +6,8 @@ import { tryAction } from "./utils.js";
 import { config } from "./config.js";
 import crypto from "crypto";
 
-const BEAR_TOKEN = "Bearer";
+export const BEAR_TOKEN = "Bearer";
+export const API_BEAR_TOKEN = "ApiKey";
 
 export async function hashPassword(password: string) {
   const hashedPassword = await argon2.hash(password);
@@ -58,6 +59,27 @@ export function getBearerToken(req: Request): string {
   }
 
   return token;
+}
+
+export function getAPIKey(req: Request): string {
+  const authHeader = req.get("Authorization");
+  if (!authHeader || typeof authHeader !== "string") {
+    throw new UserNotAuthenticatedError("API Key not available");
+  }
+
+  const [apiBearer, apiKey, ...extra] = authHeader.split(" ");
+
+
+  if (!(
+    apiBearer === API_BEAR_TOKEN
+    && apiKey
+    && extra.length === 0
+  )) {
+    throw new UserNotAuthenticatedError("Authorization header is broken");
+  }
+
+
+  return apiKey;
 }
 
 export function makeRefreshToken() {

@@ -1,6 +1,15 @@
 import { Request } from "express";
 import { vi, describe, it, expect, beforeAll } from "vitest";
-import { checkPasswordHash, getBearerToken, hashPassword, makeJWT, validateJWT } from "./auth.js";
+import {
+  checkPasswordHash,
+  getBearerToken,
+  getAPIKey,
+  hashPassword,
+  makeJWT,
+  validateJWT,
+  BEAR_TOKEN,
+  API_BEAR_TOKEN,
+} from "./auth.js";
 import { UserNotAuthenticatedError } from "./api/errors.js";
 
 describe("Password Hashing", () => {
@@ -72,13 +81,14 @@ describe("JWT Utilities", () => {
 
   describe("validate token", () => {
     it("should return the token when a valid authorization header is provided", () => {
+      const token = "secret-token";
       const mockRequest = {
-        get: vi.fn().mockReturnValue("Bearer secret-token"),
+        get: vi.fn().mockReturnValue(`${BEAR_TOKEN} ${token}`),
       } as unknown as Request;
 
       const result = getBearerToken(mockRequest);
 
-      expect(result).toBe("secret-token");
+      expect(result).toBe(token);
       expect(mockRequest.get).toHaveBeenCalledWith("Authorization");
     });
 
@@ -128,5 +138,67 @@ describe("JWT Utilities", () => {
     });
 
   });
+});
+
+describe("Polka API Key", () => {
+  it("should return the token when a valid authorization header is provided", () => {
+    const apiKey = "api-key";
+    const mockRequest = {
+      get: vi.fn().mockReturnValue(`${API_BEAR_TOKEN} ${apiKey}`),
+    } as unknown as Request;
+
+    const result = getAPIKey(mockRequest);
+
+    expect(result).toBe(apiKey);
+    expect(mockRequest.get).toHaveBeenCalledWith("Authorization");
+  });
+
+  it("should throw UserNotAuthenticatedError if authorization header is missing", () => {
+    const mockRequest = {
+      get: vi.fn().mockReturnValue(undefined),
+    } as unknown as Request;
+
+    expect(() => getAPIKey(mockRequest)).toThrow(UserNotAuthenticatedError);
+    expect(() => getAPIKey(mockRequest)).toThrow("API Key not available");
+  });
+
+  it("should throw UserNotAuthenticatedError if the prefix is not the expected API_BEAR_TOKEN", () => {
+    const mockRequest = {
+      get: vi.fn().mockReturnValue("Basic secret-token"),
+    } as unknown as Request;
+
+    expect(() => getAPIKey(mockRequest)).toThrow(UserNotAuthenticatedError);
+    expect(() => getAPIKey(mockRequest)).toThrow("Authorization header is broken");
+  });
+
+
+  it("should throw UserNotAuthenticatedError if the header does not have apiKey", () => {
+    const mockRequest = {
+      get: vi.fn().mockReturnValue(`${API_BEAR_TOKEN} `),
+    } as unknown as Request;
+
+    expect(() => getAPIKey(mockRequest)).toThrow(UserNotAuthenticatedError);
+    expect(() => getAPIKey(mockRequest)).toThrow("Authorization header is broken");
+  });
+
+  it("should throw UserNotAuthenticatedError if the header contains more than three elements", () => {
+    const apiKey = "api-key";
+    const mockRequest = {
+      get: vi.fn().mockReturnValue(`${API_BEAR_TOKEN} ${apiKey} extra`),
+    } as unknown as Request;
+
+    expect(() => getAPIKey(mockRequest)).toThrow(UserNotAuthenticatedError);
+    expect(() => getAPIKey(mockRequest)).toThrow("Authorization header is broken");
+  });
+
+  it("should throw UserNotAuthenticatedError if the header is not a string", () => {
+    const mockRequest = {
+      get: vi.fn().mockReturnValue(12345),
+    } as unknown as Request;
+
+    expect(() => getAPIKey(mockRequest)).toThrow(UserNotAuthenticatedError);
+    expect(() => getAPIKey(mockRequest)).toThrow("API Key not available");
+  });
+
 });
 

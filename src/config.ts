@@ -17,6 +17,7 @@ type APIConfig = {
   fileserverHits: number;
   port: number;
   platform: Platform;
+  polkaKey: string;
 };
 
 type JWTConfig = {
@@ -35,6 +36,7 @@ export const config: Config = {
     fileserverHits: 0,
     port: Number(requireKey("PORT")),
     platform: requireKey("PLATFORM") as Platform,
+    polkaKey: requireKey("POLKA_KEY"),
   },
   db: {
     migrationConfig: migrationConfig,
