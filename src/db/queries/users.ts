@@ -28,6 +28,15 @@ export async function updateUser(id: string, user: NewUser) {
   return result;
 }
 
+export async function upgradeUser(id: string) {
+  const [result] = await db
+    .update(users)
+    .set({ isChirpyRed: true })
+    .where(eq(users.id, id))
+    .returning();
+  return result;
+}
+
 export async function reset() {
   await db.delete(users);
 }

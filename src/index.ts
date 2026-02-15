@@ -16,6 +16,7 @@ import {
 import { config } from "./config.js";
 import { handlerCreateUser, handlerUpdateUser } from "./api/users.js";
 import { handlerLogin, handlerRefresh, handlerRevoke } from "./api/auth.js";
+import { handlerUpgradeUser } from "./api/polka.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
 await migrate(drizzle(migrationClient), config.db.migrationConfig);
@@ -64,6 +65,10 @@ app.get("/admin/metrics", (req, res, next) => {
 });
 app.post("/admin/reset", (req, res, next) => {
   Promise.resolve(handlerResetMetrics(req, res)).catch(next);
+});
+// webhooks
+app.post("/api/polka/webhooks", (req, res, next) => {
+  Promise.resolve(handlerUpgradeUser(req, res)).catch(next);
 });
 
 app.use(middlewareError);

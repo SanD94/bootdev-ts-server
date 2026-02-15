@@ -29,6 +29,20 @@
       "when": 1770876952864,
       "tag": "0003_flat_crystal",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771195347601,
+      "tag": "0004_lucky_onslaught",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771195632249,
+      "tag": "0005_sweet_expediter",
+      "breakpoints": true
     }
   ]
 }
