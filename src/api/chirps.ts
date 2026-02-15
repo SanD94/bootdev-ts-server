@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
-import { BadRequestError, ChirpTooLongError, NotFoundError, UserNotAuthenticatedError } from "./errors.js";
-import { createChirp, getChirps, getChirp } from "../db/queries/chirps.js";
+import { BadRequestError, ChirpTooLongError, NotFoundError, UserForbiddenError, UserNotAuthenticatedError } from "./errors.js";
+import { createChirp, getChirps, getChirp, deleteChirp } from "../db/queries/chirps.js";
 import { NewChirp } from "../db/schema.js";
 import { getBearerToken, validateJWT } from "../auth.js";
 import { config } from "../config.js";
@@ -68,4 +68,24 @@ export async function handlerGetChirp(req: Request, res: Response) {
   }
 
   res.send(chirp);
+}
+
+export async function handlerDeleteChirp(req: Request, res: Response) {
+  const { chirpId } = req.params;
+  const token = getBearerToken(req);
+  const userId = validateJWT(token, config.jwt.secret);
+
+  const chirp = await getChirp(chirpId as string);
+
+  if (!chirp) {
+    throw new NotFoundError(`chirp with id: ${chirpId} not found`);
+  }
+
+  if (chirp.userId !== userId) {
+    throw new UserForbiddenError("Not Authorized");
+  }
+
+  await deleteChirp(chirp.id);
+
+  res.status(204).send();
 }
