@@ -10,8 +10,7 @@ import { handlerCreateChirp, handlerGetChirps, handlerGetChirp } from "./api/chi
 
 import { config } from "./config.js";
 import { handlerCreateUser } from "./api/users.js";
-import { handlerRefreshToken, handlerRevokeRefreshToken } from "./api/refresh_tokens.js";
-import { handlerLogin } from "./api/auth.js";
+import { handlerLogin, handlerRefresh, handlerRevoke } from "./api/auth.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
 await migrate(drizzle(migrationClient), config.db.migrationConfig);
@@ -38,15 +37,15 @@ app.get("/api/chirps/:chirpId", (req, res, next) => {
 app.post("/api/users", (req, res, next) => {
   Promise.resolve(handlerCreateUser(req, res)).catch(next);
 });
+// auth endpoints
 app.post("/api/login", (req, res, next) => {
   Promise.resolve(handlerLogin(req, res)).catch(next);
 });
-// refresh token endpoints
 app.post("/api/refresh", (req, res, next) => {
-  Promise.resolve(handlerRefreshToken(req, res)).catch(next);
+  Promise.resolve(handlerRefresh(req, res)).catch(next);
 });
 app.post("/api/revoke", (req, res, next) => {
-  Promise.resolve(handlerRevokeRefreshToken(req, res)).catch(next);
+  Promise.resolve(handlerRevoke(req, res)).catch(next);
 });
 // admin endpoints
 app.get("/admin/metrics", (req, res, next) => {

@@ -4,7 +4,7 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 import { UserNotAuthenticatedError } from "./api/errors.js";
 import { tryAction } from "./utils.js";
 import { config } from "./config.js";
-import crypto from "node:crypto";
+import crypto from "crypto";
 
 const BEAR_TOKEN = "Bearer";
 

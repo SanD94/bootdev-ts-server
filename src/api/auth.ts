@@ -2,10 +2,13 @@ import { Response, Request } from "express";
 import { getUser } from "../db/queries/users.js";
 import { BadRequestError, UserNotAuthenticatedError } from "./errors.js";
 import { isUser } from "./users.js";
-import { checkPasswordHash, makeJWT, makeRefreshToken } from "../auth.js";
+import { checkPasswordHash, getBearerToken, makeJWT, makeRefreshToken } from "../auth.js";
 import { config } from "../config.js";
-import { createRefreshToken } from "../db/queries/refresh_tokens.js";
-import { NewRefreshToken } from "../db/schema.js";
+import {
+  saveRefreshToken,
+  findUserByActiveRefreshToken,
+  revokeRefreshToken,
+} from "../db/queries/refresh.js";
 
 
 export async function handlerLogin(req: Request, res: Response) {
@@ -31,21 +34,40 @@ export async function handlerLogin(req: Request, res: Response) {
     throw new UserNotAuthenticatedError("401 Unauthorized");
   }
 
-  const token = makeJWT(signedUser.id, config.jwt.defaultDuration, config.jwt.secret);
+  const accessToken = makeJWT(signedUser.id, config.jwt.defaultDuration, config.jwt.secret);
 
-  const expiryDate = new Date();
-  expiryDate.setDate(expiryDate.getDate() + 60);
-  const refreshToken = await createRefreshToken({
-    token: makeRefreshToken(),
-    userId: signedUser.id,
-    expiresAt: expiryDate,
-  } satisfies NewRefreshToken);
+  const refreshToken = makeRefreshToken();
+
+  const isSaved = await saveRefreshToken(signedUser.id, refreshToken);
+  if (!isSaved) {
+    throw new UserNotAuthenticatedError("401 Refresh Token Unavailable");
+  }
 
   res.status(200).send({
     ...signedUser,
-    token,
-    refreshToken: refreshToken.token,
+    token: accessToken,
+    refreshToken: refreshToken,
   });
 
 };
 
+export async function handlerRefresh(req: Request, res: Response) {
+  let refreshToken = getBearerToken(req);
+
+  const result = await findUserByActiveRefreshToken(refreshToken);
+  if (!result) {
+    throw new UserNotAuthenticatedError("Invalid Refresh Token");
+  }
+
+  const { user } = result;
+  res.status(200).send({
+    token: makeJWT(user.id, config.jwt.defaultDuration, config.jwt.secret),
+  });
+}
+
+export async function handlerRevoke(req: Request, res: Response) {
+  const refreshToken = getBearerToken(req);
+  await revokeRefreshToken(refreshToken);
+
+  res.status(204).send();
+}
