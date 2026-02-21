@@ -8,7 +8,6 @@ import {
 import {
   createChirp,
   getChirps,
-  getChirpsByAuthorId,
   getChirp,
   deleteChirp,
 } from "../db/queries/chirps.js";
@@ -65,8 +64,11 @@ export async function handlerCreateChirp(req: Request, res: Response) {
 }
 
 export async function handlerGetChirps(req: Request, res: Response) {
-  const { authorId } = req.query;
-  const chirps = typeof authorId === "string" ? await getChirpsByAuthorId(authorId) : await getChirps();
+  const { authorId, sort } = req.query;
+  const chirps = await getChirps({
+    authorId: typeof authorId === "string" ? authorId : undefined,
+    sort: sort === "desc" ? "desc" : "asc",
+  });
 
   res.send(chirps);
 }
